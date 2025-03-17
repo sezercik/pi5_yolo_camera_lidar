@@ -9,7 +9,6 @@ import logging
 import time
 from ultralytics import YOLO
 import os
-import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -69,27 +68,17 @@ class LidarSensor:
 class CameraApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Engel Tespit Prototipi")
+        self.root.title("Tramvay Engel Tespit Prototipi")
         self.root.geometry("1280x800")
         self.root.configure(bg=DARK_BG)
         
         self.style = ttk.Style()
         self.style.theme_use('clam')
-        self.style.configure('TButton', 
-                             font=FONT_MAIN, 
-                             background=ACCENT_COLOR, 
-                             foreground=TEXT_COLOR)
-        self.style.map('TButton', 
-                       background=[('active', '#388E3C'), ('disabled', '#757575')])
+        self.style.configure('TButton', font=FONT_MAIN, background=ACCENT_COLOR, oreground=TEXT_COLOR)
+        self.style.map('TButton', background=[('active', '#388E3C'), ('disabled', '#757575')])
         self.style.configure('TFrame', background=DARK_BG)
-        self.style.configure('TEntry', 
-                            fieldbackground=LIGHT_BG,
-                            foreground=TEXT_COLOR,
-                            insertcolor=TEXT_COLOR)
-        self.style.configure('TLabel', 
-                            background=DARK_BG,
-                            foreground=TEXT_COLOR,
-                            font=FONT_MAIN)
+        self.style.configure('TEntry', fieldbackground=LIGHT_BG, foreground=TEXT_COLOR, insertcolor=TEXT_COLOR)
+        self.style.configure('TLabel',  background=DARK_BG, foreground=TEXT_COLOR,font=FONT_MAIN)
         
         self.camera = Picamera2()
         config = self.camera.create_video_configuration(main={"size": (640, 480)})
@@ -105,7 +94,6 @@ class CameraApp:
         self.latest_distance = 0
         self.running = False
         self.lock = threading.Lock()
-        self.segment_results = None
         
         self.min_distance_var = StringVar(value="50")
         self.max_distance_var = StringVar(value="200")
@@ -120,41 +108,25 @@ class CameraApp:
         self.header_frame = Frame(self.main_frame, bg=DARK_BG)
         self.header_frame.pack(fill=tk.X, pady=(0, 20))
         
-        self.title_label = Label(self.header_frame, 
-                                text="Engel Tespit Sistemi", 
-                                font=("Helvetica", 24, "bold"),
-                                fg=ACCENT_COLOR, 
-                                bg=DARK_BG)
+        self.title_label = Label(self.header_frame, text="Tramvay Engel Tespit Prototipi", font=("Helvetica", 24, "bold"), fg=ACCENT_COLOR, bg=DARK_BG)
         self.title_label.pack(side=tk.LEFT)
         
         self.settings_frame = Frame(self.header_frame, bg=DARK_BG)
         self.settings_frame.pack(side=tk.RIGHT, padx=10)
         
-        self.min_distance_label = ttk.Label(self.settings_frame, 
-                                          text="Min Mesafe (cm):", 
-                                          style='TLabel')
+        self.min_distance_label = ttk.Label(self.settings_frame, text="Min Mesafe (cm):", style='TLabel')
         self.min_distance_label.grid(row=0, column=0, padx=5, pady=5)
         
-        self.min_distance_entry = ttk.Entry(self.settings_frame, 
-                                          width=8, 
-                                          textvariable=self.min_distance_var, 
-                                          style='TEntry')
+        self.min_distance_entry = ttk.Entry(self.settings_frame, width=8, textvariable=self.min_distance_var, style='TEntry')
         self.min_distance_entry.grid(row=0, column=1, padx=5, pady=5)
         
-        self.max_distance_label = ttk.Label(self.settings_frame, 
-                                          text="Max Mesafe (cm):", 
-                                          style='TLabel')
+        self.max_distance_label = ttk.Label(self.settings_frame, text="Max Mesafe (cm):", style='TLabel')
         self.max_distance_label.grid(row=0, column=2, padx=5, pady=5)
         
-        self.max_distance_entry = ttk.Entry(self.settings_frame, 
-                                          width=8, 
-                                          textvariable=self.max_distance_var, 
-                                          style='TEntry')
+        self.max_distance_entry = ttk.Entry(self.settings_frame, width=8, textvariable=self.max_distance_var, style='TEntry')
         self.max_distance_entry.grid(row=0, column=3, padx=5, pady=5)
         
-        self.apply_button = ttk.Button(self.settings_frame, 
-                                     text="Uygula", 
-                                     command=self.apply_settings)
+        self.apply_button = ttk.Button(self.settings_frame, text="Uygula", command=self.apply_settings)
         self.apply_button.grid(row=0, column=4, padx=5, pady=5)
         
         self.video_frame = Frame(self.main_frame, bg=DARK_BG)
@@ -163,11 +135,7 @@ class CameraApp:
         self.live_container = Frame(self.video_frame, bg=LIGHT_BG, padx=10, pady=10, bd=2, relief=tk.GROOVE)
         self.live_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
-        self.live_label = Label(self.live_container, 
-                              text="Canlı Görüntü", 
-                              font=FONT_TITLE, 
-                              fg=TEXT_COLOR, 
-                              bg=LIGHT_BG)
+        self.live_label = Label(self.live_container, text="Video",font=FONT_TITLE, fg=TEXT_COLOR, bg=LIGHT_BG)
         self.live_label.pack(pady=(0, 10))
         
         self.live_image_label = Label(self.live_container, bg=DARK_BG, bd=1, relief=tk.SUNKEN)
@@ -176,11 +144,7 @@ class CameraApp:
         self.filtered_container = Frame(self.video_frame, bg=LIGHT_BG, padx=10, pady=10, bd=2, relief=tk.GROOVE)
         self.filtered_container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(10, 0))
         
-        self.filtered_label = Label(self.filtered_container, 
-                                  text="Tespit Edilen Nesneler", 
-                                  font=FONT_TITLE,
-                                  fg=TEXT_COLOR, 
-                                  bg=LIGHT_BG)
+        self.filtered_label = Label(self.filtered_container, text="Tespit Edilen Engeller", font=FONT_TITLE,fg=TEXT_COLOR, bg=LIGHT_BG)
         self.filtered_label.pack(pady=(0, 10))
         
         self.filtered_image_label = Label(self.filtered_container, bg=DARK_BG, bd=1, relief=tk.SUNKEN)
@@ -192,44 +156,25 @@ class CameraApp:
         self.info_frame = Frame(self.status_frame, bg=LIGHT_BG, padx=15, pady=15)
         self.info_frame.pack(side=tk.LEFT, fill=tk.Y)
         
-        self.lidar_status_label = Label(self.info_frame, 
-                                      text="Lidar Mesafesi: 0 cm", 
-                                      font=FONT_MAIN, 
-                                      fg=TEXT_COLOR, 
-                                      bg=LIGHT_BG)
+        self.lidar_status_label = Label(self.info_frame,text="Lidar Mesafesi: 0 cm", font=FONT_MAIN, fg=TEXT_COLOR, bg=LIGHT_BG)
         self.lidar_status_label.pack(side=tk.LEFT, padx=(0, 20))
         
-        self.range_status_label = Label(self.info_frame,
-                                     text=f"Tespit aralığı: {self.min_distance}-{self.max_distance} cm",
-                                     font=FONT_MAIN,
-                                     fg=ACCENT_COLOR,
-                                     bg=LIGHT_BG)
+        self.range_status_label = Label(self.info_frame, text=f"Tespit aralığı: {self.min_distance}-{self.max_distance} cm", font=FONT_MAIN,fg=ACCENT_COLOR, bg=LIGHT_BG)
         self.range_status_label.pack(side=tk.LEFT, padx=(0, 20))
         
         self.warning_frame = Frame(self.status_frame, bg=LIGHT_BG, padx=15, pady=15)
         self.warning_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
-        self.warning_label = Label(self.warning_frame, 
-                                 text="", 
-                                 font=FONT_WARNING, 
-                                 fg=WARNING_COLOR, 
-                                 bg=LIGHT_BG)
+        self.warning_label = Label(self.warning_frame, text="", font=FONT_WARNING, fg=WARNING_COLOR, bg=LIGHT_BG)
         self.warning_label.pack(side=tk.RIGHT)
         
         self.control_frame = Frame(self.main_frame, bg=DARK_BG, pady=10)
         self.control_frame.pack(fill=tk.X)
         
-        self.start_button = ttk.Button(self.control_frame, 
-                                     text="SİSTEMİ BAŞLAT", 
-                                     command=self.start, 
-                                     style='TButton',
-                                     width=20)
+        self.start_button = ttk.Button(self.control_frame, text="Prototipi BAŞLAT", command=self.start, style='TButton',width=20)
         self.start_button.pack(pady=10)
         
-        self.progress = ttk.Progressbar(self.control_frame, 
-                                      orient="horizontal", 
-                                      length=300, 
-                                      mode="indeterminate")
+        self.progress = ttk.Progressbar(self.control_frame, orient="horizontal", length=300, mode="indeterminate")
         self.progress.pack(pady=(0, 10))
         
         self.setup_image_placeholders()
@@ -333,22 +278,19 @@ class CameraApp:
             self.live_image_label.config(image=imgtk)
             self.live_image_label.imgtk = imgtk
 
-            # Normal durumda burası kullanılmayacak
-            # cv2.imwrite("t.jpg", frame)
-
         self.update_distance_indicator(distance)
 
         if self.min_distance <= distance <= self.max_distance:
             try:
+                t_img = Image.open("t.jpg")
+                t_imgtk = ImageTk.PhotoImage(t_img)
+                self.filtered_image_label.config(image=t_imgtk)
+                self.filtered_image_label.imgtk = t_imgtk
                 self.run_yolo()
             except Exception as e:
-                logger.error(f"Error processing image with YOLO: {e}")
-                self.warning_text = ""
-                self.warning_label.config(text="")
+                logger.error(f"Error loading or processing image: {e}")
         else:
             self.show_out_of_range_image(distance)
-            self.warning_text = ""
-            self.warning_label.config(text="")
         
         self.root.after(33, self.update_gui)
 
@@ -365,13 +307,13 @@ class CameraApp:
             small_font = ImageFont.load_default()
         
         if distance < self.min_distance:
-            message = "Engel Bekleniyor"
+            message = "Tespit yapılmıyor"
             reason = f"Mesafe çok yakın: {distance} cm"
-            color = (255, 165, 0) 
+            color = (255, 165, 0)
         else: 
-            message = "Engel Bekleniyor"
+            message = "Tespit yapılmıyor"
             reason = f"Mesafe çok uzak: {distance} cm"
-            color = (100, 100, 255)
+            color = (100, 100, 255) 
         
         text_bbox = draw.textbbox((0, 0), message, font=font)
         text_width = text_bbox[2] - text_bbox[0]
@@ -393,6 +335,8 @@ class CameraApp:
         placeholder_img = ImageTk.PhotoImage(placeholder)
         self.filtered_image_label.config(image=placeholder_img)
         self.filtered_image_label.image = placeholder_img
+        
+        self.warning_label.config(text="")
 
     def add_distance_overlay(self, img, distance):
         from PIL import ImageDraw, ImageFont
@@ -417,11 +361,11 @@ class CameraApp:
         )
         
         if distance < self.min_distance:
-            text_color = (255, 165, 0)
+            text_color = (255, 165, 0)  
         elif distance > self.max_distance:
-            text_color = (100, 100, 255)
+            text_color = (100, 100, 255) 
         else:
-            text_color = (0, 255, 0)
+            text_color = (0, 255, 0) 
             
         draw.text(position, distance_text, fill=text_color, font=font)
         return img
@@ -441,64 +385,13 @@ class CameraApp:
 
     def run_yolo(self):
         results = self.model("t.jpg")
-        self.segment_results = results[0]
-        
-        detected_objects = [self.segment_results.names[int(box.cls)] for box in self.segment_results.boxes]
-        
+        detected_objects = [results[0].names[int(box.cls)] for box in results[0].boxes]
         if detected_objects:
-            self.display_segmentation_results()
-            
             self.warning_text = f"DİKKAT: {', '.join(detected_objects)} tespit edildi!"
             self.flash_warning()
         else:
-            self.show_no_detection_image()
-            
             self.warning_text = ""
             self.warning_label.config(text="")
-
-    def display_segmentation_results(self):
-        result_img = self.segment_results.plot()
-        result_img_rgb = cv2.cvtColor(result_img, cv2.COLOR_BGR2RGB)
-        
-        img = Image.fromarray(result_img_rgb)
-        img_tk = ImageTk.PhotoImage(image=img)
-        self.filtered_image_label.config(image=img_tk)
-        self.filtered_image_label.image = img_tk
-
-    def show_no_detection_image(self):
-        try:
-            img = cv2.imread("t.jpg")
-            img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            pil_img = Image.fromarray(img_rgb)
-            
-            from PIL import ImageDraw, ImageFont
-            draw = ImageDraw.Draw(pil_img)
-            
-            try:
-                font = ImageFont.truetype("Arial", 24)
-            except IOError:
-                font = ImageFont.load_default()
-                
-            message = "Nesne tespit edilmedi"
-            text_bbox = draw.textbbox((0, 0), message, font=font)
-            text_width = text_bbox[2] - text_bbox[0]
-            text_height = text_bbox[3] - text_bbox[1]
-            
-            position = ((pil_img.width - text_width) // 2, 20)
-            
-            draw.rectangle(
-                [position[0] - 10, position[1] - 5, 
-                 position[0] + text_width + 10, position[1] + text_height + 5], 
-                fill=(0, 0, 0, 180)
-            )
-            
-            draw.text(position, message, fill=(0, 255, 0), font=font)
-            img_tk = ImageTk.PhotoImage(image=pil_img)
-            self.filtered_image_label.config(image=img_tk)
-            self.filtered_image_label.image = img_tk
-            
-        except Exception as e:
-            logger.error(f"Error showing no detection image: {e}")
 
     def flash_warning(self):
         if self.running and self.warning_text:
